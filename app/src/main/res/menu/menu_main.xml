@@ -3,8 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.houseofdoyens.ultrahdplayer20.MainActivity">
     <item
+        android:id="@+id/action_search"
+        android:title="@string/action_search"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_amp"
+        android:title="@string/action_amp"
+        app:showAsAction="always"/>
+    <item
         android:id="@+id/action_settings"
-        android:orderInCategory="100"
         android:title="@string/action_settings"
-        app:showAsAction="never" />
+        app:showAsAction="always"/>
+
 </menu>
+
