@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     tools:context="com.houseofdoyens.ultrahdplayer20.MainActivity">
 
     <android.support.design.widget.AppBarLayout
@@ -24,23 +25,38 @@
 
     <include layout="@layout/content_main" />
 
-    <include layout="@layout/activity_banner_ad" />
-
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/recentPlay"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="100dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
+        android:layout_marginBottom="80dp"
+        android:layout_marginEnd="15dp"
         android:importantForAccessibility="yes"
         android:visibility="visible"
-        app:backgroundTint="@android:color/holo_blue_light"
+        app:backgroundTint="@color/colorPrimary"
         app:fabSize="auto"
         app:rippleColor="@color/colorPrimaryDark"
         app:srcCompat="@android:drawable/ic_media_play" />
 
+    <android.support.design.internal.BottomNavigationItemView
 
+        android:id="@+id/banner_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:layout_margin="@dimen/fab_margin"
+        android:importantForAccessibility="yes"
+        android:visibility="visible">
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/bannerAd"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/banner_ad_unit_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
+    </android.support.design.internal.BottomNavigationItemView>
 
 </android.support.design.widget.CoordinatorLayout>

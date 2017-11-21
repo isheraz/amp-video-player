@@ -1,5 +1,7 @@
 package com.houseofdoyens.ultrahdplayer20;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
@@ -12,7 +14,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
 import com.joanzapata.iconify.IconDrawable;
 import com.joanzapata.iconify.Iconify;
 import com.joanzapata.iconify.fonts.EntypoIcons;
@@ -22,7 +29,12 @@ import com.joanzapata.iconify.fonts.FontAwesomeModule;
 
 public class MainActivity extends AppCompatActivity {
 
-    IconDrawable play, settings, amp, search, hamburger ;
+    private IconDrawable play, settings, amp, search, hamburger;
+    private AdView adView;
+    private InterstitialAd fullAd;
+    private AdManager ads;
+    private AdRequest adRequest;
+    private Intent page;
 
 
     @Override
@@ -30,7 +42,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         Iconify.with(new FontAwesomeModule())
-        .with(new EntypoModule());
+                .with(new EntypoModule());
+        MobileAds.initialize(this, getResources().getString(R.string.app_id));
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -39,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         play = new IconDrawable(this, FontAwesomeIcons.fa_play).colorRes(R.color.colorWhite).actionBarSize();
         toolbar.setLogo(play);
 
-        
         //        Hamburger For Toolbar
         //        hamburger = new IconDrawable(this, FontAwesomeIcons.fa_bars).colorRes(R.color.colorWhite).actionBarSize();
         //        toolbar.setNavigationIcon(hamburger);
@@ -48,10 +60,26 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Click Working for recent play
+//                if (fullAd.isLoaded()) {
+//                    fullAd.show();
+//                }else{
+//                    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                            .setAction("Action", null).show();
+//                }
             }
         });
+
+        /* Ads */
+        adView = (AdView) findViewById(R.id.bannerAd);
+        adRequest = new AdRequest.Builder()
+                .addTestDevice((String.valueOf(R.string.test_device)))
+                .build();
+        adView.loadAd(adRequest);
+
+        ads = AdManager.getInstance();
+        ads.createAd(MainActivity.this);
+
     }
 
     @Override
@@ -78,10 +106,26 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_amp:
+                break;
+
+            case R.id.action_search:
+                break;
+
+            case R.id.action_settings:
+                page = new Intent(this, SettingsActivity.class);
+                this.startActivity(page);
+                break;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }
