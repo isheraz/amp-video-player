@@ -82,6 +82,15 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
+    <string name="brightness">Brightness</string>
+    <string name="volume">Volume</string>
+    <string name="mics">Mics</string>
+    <string name="themes">Themes</string>
+    <string name="settings_title">Settings</string>
+    <string name="folder_name">Folder Name</string>
+    <string name="time_place_holder">02:34</string>
+    <string name="thumbnail">Thumbnail</string>
+    <string name="play_icon">play_icon</string>
 
 
 </resources>

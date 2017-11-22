@@ -29,8 +29,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile 'com.google.android.gms:play-services-ads:11.6.0'
-
+    //Libraries External
     compile 'com.joanzapata.iconify:android-iconify-fontawesome:2.2.2'
     compile 'com.joanzapata.iconify:android-iconify-entypo:2.2.2'
+    compile 'com.anthonycr.grant:permissions:1.0'
+    compile 'com.google.android.gms:play-services-ads:11.6.0'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
 }
