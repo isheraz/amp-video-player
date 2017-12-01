@@ -15,14 +15,17 @@ public class AdManager {
     static AdManager singleton;
     static InterstitialAd interstitialAd;
     static int adCounter = 0;
+    private static String adID, testDevice;
 
     public AdManager() {
+        adID = String.valueOf(R.string.interstitial_ad_unit_id);
+        testDevice = String.valueOf(R.string.test_device);
     }
 
     /***
      * returns an instance of this class. if singleton is null create an instance
      * else return  the current instance
-     * @return
+     * @return AdManager
      */
     public static AdManager getInstance() {
         if (singleton == null) {
@@ -38,24 +41,21 @@ public class AdManager {
      */
     public static void createAd(Context context) {
         interstitialAd = new InterstitialAd(context);
-        interstitialAd.setAdUnitId(String.valueOf(R.string.interstitial_ad_unit_id));
+        if( adCounter % 2 != 0){
+            adID = "ca-app-pub-3882915167442181/3423031112";
+        }else{
+            adID = "ca-app-pub-3882915167442181/1550739378";
+        }
+        interstitialAd.setAdUnitId(adID);
         AdRequest adRequest = new AdRequest.Builder()
-                .addTestDevice(String.valueOf(R.string.test_device))
+                .addTestDevice(testDevice)
                 .build();
         interstitialAd.loadAd(adRequest);
         adCounter++;
     }
-    public static void createAd(Context context, AdRequest request) {
-        interstitialAd = new InterstitialAd(context);
-        interstitialAd.setAdUnitId(String.valueOf(R.string.interstitial_ad_unit_id));
-        interstitialAd.loadAd(request);
-    }
-
-
-
     /***
      * get an interstitial Ad
-     * @return
+     * @return interstitialAd
      */
     public static InterstitialAd getAd() {
         return interstitialAd;

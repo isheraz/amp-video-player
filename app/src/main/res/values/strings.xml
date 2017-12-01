@@ -91,6 +91,10 @@
     <string name="time_place_holder">02:34</string>
     <string name="thumbnail">Thumbnail</string>
     <string name="play_icon">play_icon</string>
+    <string name="themes_color">Theme Color</string>
+    <string name="rate_us">Rate Us</string>
+    <string name="share_app">Share Application</string>
+    <string name="play_pause">Play/Pause</string>
 
 
 </resources>

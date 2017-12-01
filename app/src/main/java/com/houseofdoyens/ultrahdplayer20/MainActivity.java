@@ -5,12 +5,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -44,15 +49,18 @@ public class MainActivity extends AppCompatActivity
     private IconDrawable play, settings, amp, search, hamburger;
     private AdView adView;
     private InterstitialAd fullAd;
-    private AdManager ads;
+//    private static AdManager ads;
     private AdRequest adRequest;
     private Intent page;
     private View mLayout;
 
     private ArrayList<VideoViewInfo> AllVideosData = new ArrayList<>();
     private ArrayList<String> videosFolderName = new ArrayList<>();
-    GridView gridView;
-    GridAdapterFolders adapter;
+    private GridView gridView;
+    private GridAdapterFolders adapter;
+    private FloatingActionButton fab;
+
+    AppPreferences properties;
 
 
     @Override
@@ -79,7 +87,8 @@ public class MainActivity extends AppCompatActivity
         //toolbar.setNavigationIcon(hamburger);
 
         /*Recent Play Floating Button*/
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.recentPlay);
+        fab = (FloatingActionButton) findViewById(R.id.recentPlay);
+        fab.setVisibility(View.INVISIBLE);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -87,36 +96,78 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+
+        properties = AppPreferences.getInstance();
+        properties.preferences = getSharedPreferences(properties.app, Context.MODE_PRIVATE);
+        properties.edit_preferences = properties.preferences.edit();
+
+        /* App Skin setup */
+        String statusBarColor = properties.preferences.getString("statusBar_color", "#303F9F");
+        String realThemeColor = properties.preferences.getString("actionBar_color", "#3F51B5");
+        changeTheme(statusBarColor, realThemeColor);
+
         /* Ads Bannner */
         adView = (AdView) findViewById(R.id.bannerAd);
         adRequest = new AdRequest.Builder()
-                .addTestDevice((String.valueOf(R.string.test_device)))
+                .addTestDevice(getResources().getString(R.string.test_device))
                 .build();
         adView.loadAd(adRequest);
 
         /*Load Ad Interstitial for next page*/
-        ads = AdManager.getInstance();
-        ads.createAd(MainActivity.this);
+//        ads = AdManager.getInstance();
+        AdManager.createAd(this);
         gridView = (GridView) findViewById(R.id.gridView);
 
         /*Populate Folders after getting permissions*/
-        if(!hasReadExternalStoragePermission(this)){
+        if (!hasReadExternalStoragePermission(this)) {
             requestReadExternalStoragePermission(this);
-        }else{
+        } else {
             populateFolders();
         }
 
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-        AdManager adManager = AdManager.getInstance();
-        InterstitialAd ad =  adManager.getAd();
-        if (ad.isLoaded()) {
-            ad.show();
+    protected void onResume() {
+        super.onResume();
+        /* App Skin setup */
+        String statusBarColor = properties.preferences.getString("statusBar_color", "#303F9F");
+        String realThemeColor = properties.preferences.getString("actionBar_color", "#3F51B5");
+        changeTheme(statusBarColor, realThemeColor);
+
+//        AdManager.createAd(this);
+        fullAd = AdManager.getAd();
+        if (fullAd.isLoaded()) {
+            fullAd.show();
+        }else{
+            AdManager.createAd(this);
         }
         adView.loadAd(adRequest);
+    }
+
+    public void changeTheme(String statusBarColor, String realThemeColor) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(Color.parseColor(statusBarColor));
+        }
+        ActionBar actionBar = getSupportActionBar();
+        ColorDrawable themeColor = new ColorDrawable(Color.parseColor(realThemeColor));
+        actionBar.setBackgroundDrawable(themeColor);
+        int[][] states = new int[][] {
+                new int[] { android.R.attr.state_enabled}, // enabled
+                new int[] {-android.R.attr.state_enabled}, // disabled
+                new int[] {-android.R.attr.state_checked}, // unchecked
+                new int[] { android.R.attr.state_pressed}  // pressed
+        };
+
+        int[] colors = new int[] {
+               Color.parseColor(realThemeColor),
+                Color.RED,
+                Color.GREEN,
+                Color.parseColor(statusBarColor)
+        };
+        ColorStateList tint = new ColorStateList(states, colors);
+        fab.setBackgroundTintList(tint);
+        fab.setBackgroundDrawable(themeColor);
     }
 
     private void populateFolders() {
@@ -190,6 +241,7 @@ public class MainActivity extends AppCompatActivity
         super.onBackPressed();
         finish();
     }
+
     public static void requestReadExternalStoragePermission(Activity activity) {
 
         String requiredPermission = Manifest.permission.READ_EXTERNAL_STORAGE;
@@ -202,9 +254,10 @@ public class MainActivity extends AppCompatActivity
         boolean hasPermission = (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
         return hasPermission;
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                                     @NonNull int[] grantResults) {
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSIONS_READ_EXTERNAL_STORAGE:

@@ -1,13 +1,11 @@
 package com.houseofdoyens.ultrahdplayer20;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
@@ -25,32 +23,31 @@ public class FolderVideosActivity extends AppCompatActivity {
     ArrayList<String> videosName = new ArrayList<>();
     ArrayList<String> videosDuration = new ArrayList<>();
     ArrayList<String> videosResulotion = new ArrayList<>();
-
-
-    AdView adView ;
-
-
+    private AdView adView;
     GridView gridView;
     GridAdapterVideos adapter;
-
-    ActionBar ab;
-
     RelativeLayout mainLayout;
+    /*Shared Preferences    */
+    private AppPreferences properties;
+
+    private InterstitialAd fullAd;
+//    private static AdManager ads;
+    private AdRequest adRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_folder_videos);
 
-        AdManager adManager = AdManager.getInstance();
-        InterstitialAd ad =  adManager.getAd();
-
-        if (ad.isLoaded()) {
-            ad.show();
+        fullAd = AdManager.getAd();
+        if (fullAd.isLoaded()) {
+            fullAd.show();
+        } else {
+            AdManager.createAd(this);
         }
         adView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder()
-                .addTestDevice(String.valueOf(R.string.banner_ad_unit_id)).build();
+        adRequest = new AdRequest.Builder()
+                .addTestDevice("B2A4ACD09989A482DEBA3063377FC1F0").build();
         adView.loadAd(adRequest);
 
         gridView = (GridView) findViewById(R.id.gridView);
@@ -59,31 +56,20 @@ public class FolderVideosActivity extends AppCompatActivity {
         String folderName = bundle.getString("folderName");
 
         setTitle(folderName);
+        mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
 
-        ab = getSupportActionBar();
+        String statusBarColor = properties.preferences.getString("statusBar_color", "#303F9F");
+        String realThemeColor = properties.preferences.getString("actionBar_color", "#3F51B5");
+//        String activityBackgroundColor = properties.preferences.getString("background_color", "#FFFFFF");
 
-//        String statusBarColor = MainActivity.sp.getString("statusBar_color", "#303F9F");
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            getWindow().setStatusBarColor(Color.parseColor(statusBarColor));
-//        }
-
-//        String realThemeColor = MainActivity.sp.getString("actionBar_color", "#3F51B5");
-//        ab.setBackgroundDrawable(new ColorDrawable(Color.parseColor(realThemeColor)));
-
-//        String activityBackgroundColor = MainActivity.sp.getString("background_color", "#FFFFFF");
-//        mainLayout = (RelativeLayout) findViewById(R.id.mainLayout);
-//        mainLayout.setBackgroundColor(Color.parseColor(activityBackgroundColor));
-
-        ab.setHomeButtonEnabled(true);
-        ab.setDisplayHomeAsUpEnabled(true);
-
+        changeTheme(statusBarColor, realThemeColor);
 
         GetVideos gv = new GetVideos();
         gv.getAllVideosData(FolderVideosActivity.this, AllVideosData);
 
-        for(int i=0; i<AllVideosData.size(); i++) {
+        for (int i = 0; i < AllVideosData.size(); i++) {
 
-            if(folderName.equals(AllVideosData.get(i).getBucketName())) {
+            if (folderName.equals(AllVideosData.get(i).getBucketName())) {
                 videosName.add(AllVideosData.get(i).getTitle());
                 videosPath.add(AllVideosData.get(i).getFilePath());
                 videosDuration.add(AllVideosData.get(i).getDuration());
@@ -105,19 +91,33 @@ public class FolderVideosActivity extends AppCompatActivity {
 
         adapter = new GridAdapterVideos(FolderVideosActivity.this, path, name, duration, resolution);
         gridView.setAdapter(adapter);
-//        MainActivity.sp_e.putString("parent_activity", "FolderVideosActivity").commit();
+        properties.edit_preferences.putString("parent_activity", "FolderVideosActivity").commit();
     }
+
+    public void changeTheme(String statusBarColor, String realThemeColor) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(Color.parseColor(statusBarColor));
+        }
+        ActionBar actionBar = getSupportActionBar();
+        ColorDrawable themeColor = new ColorDrawable(Color.parseColor(realThemeColor));
+//        mainLayout.setBackground(themeColor);
+        actionBar.setBackgroundDrawable(themeColor);
+        actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+    }
+
 
     @Override
     protected void onResume() {
         super.onResume();
-        AdManager adManager = AdManager.getInstance();
-        InterstitialAd ad =  adManager.getAd();
-        if (ad.isLoaded()) {
-            ad.show();
+        if (fullAd.isLoaded()) {
+            fullAd.show();
+        } else {
+            AdManager.createAd(this);
         }
         adView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder()
+        adRequest = new AdRequest.Builder()
                 .addTestDevice(String.valueOf(R.string.banner_ad_unit_id)).build();
         adView.loadAd(adRequest);
     }
@@ -129,11 +129,10 @@ public class FolderVideosActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        /*What Meny item is selected*/
+        /*What Menu item is selected*/
         switch (id) {
             default:
-                Intent page = new Intent(this, MainActivity.class);
-                this.startActivity(page);
+               finish();
                 break;
         }
         return super.onOptionsItemSelected(item);

@@ -59,7 +59,7 @@ public class GridAdapterVideos extends BaseAdapter {
             gridView = inflater.inflate(R.layout.custom_layout_video, null);
         }
 
-        ImageView imageView = (ImageView) gridView.findViewById(R.id.imageView);
+        ImageView imageView = (ImageView) gridView.findViewById(R.id.folderImage);
         final TextView textView = (TextView) gridView.findViewById(R.id.textView);
         final TextView vidDuration = (TextView)  gridView.findViewById(R.id.duration);
 
@@ -81,30 +81,32 @@ public class GridAdapterVideos extends BaseAdapter {
         textView.setText(name[position]);
         vidDuration.setText(durationInMinutes);
 
-//        gridView.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//                String videoName = name[position];
-//                String videoPath = path[position];
-//
-//                ArrayList<String> AllVideoName = new ArrayList<String>();
-//                ArrayList<String> AllVideoPath = new ArrayList<String>();
-//
-//                for (int i = 0; i< name.length; i++) {
-//                    AllVideoName.add(name[i]);
-//                    AllVideoPath.add(path[i]);
-//                }
-//
-//                Intent intent = new Intent(context, VideoPlayerActivity.class);
-//                intent.putExtra("videoName", videoName);
-//                intent.putExtra("videoPath", videoPath);
-//                intent.putExtra("defaultFlag", true);
-//                intent.putStringArrayListExtra("videNameArray", AllVideoName);
-//                intent.putStringArrayListExtra("videPathArray", AllVideoPath);
-//                context.startActivity(intent);
-//            }
-//        });
+        gridView.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                String videoName = name[position];
+                String videoPath = path[position];
+                String res = resolution[position];
+
+                ArrayList<String> AllVideoName = new ArrayList<String>();
+                ArrayList<String> AllVideoPath = new ArrayList<String>();
+
+                for (int i = 0; i< name.length; i++) {
+                    AllVideoName.add(name[i]);
+                    AllVideoPath.add(path[i]);
+                }
+
+                Log.i("VideoRes",res); // Okay getting Resolution of one Video
+                Intent intent = new Intent(context, VideoPlayerActivity.class);
+                intent.putExtra("videoName", videoName);
+                intent.putExtra("videoPath", videoPath);
+                intent.putExtra("defaultFlag", true);
+                intent.putStringArrayListExtra("videNameArray", AllVideoName);
+                intent.putStringArrayListExtra("videPathArray", AllVideoPath);
+                context.startActivity(intent);
+            }
+        });
         return gridView;
     }
 }

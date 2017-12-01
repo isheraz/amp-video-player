@@ -47,7 +47,7 @@ public class GridAdapterFolders extends BaseAdapter{
             gridView = inflater.inflate(R.layout.custom_layout_folder, null);
         }
 
-        ImageView imageView = (ImageView) gridView.findViewById(R.id.imageView);
+        ImageView imageView = (ImageView) gridView.findViewById(R.id.folderImage);
         final TextView textView = (TextView) gridView.findViewById(R.id.textView);
 
         gridView.setOnClickListener(new View.OnClickListener() {

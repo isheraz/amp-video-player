@@ -4,18 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.houseofdoyens.ultrahdplayer20.FolderVideosActivity">
+
     <GridView
+        android:id="@+id/gridView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/gridView"
-        android:columnWidth="100dp"
         android:layout_margin="10dp"
         android:layout_marginTop="0dp"
+        android:columnWidth="100dp"
+        android:gravity="center"
         android:horizontalSpacing="10dp"
-        android:verticalSpacing="10dp"
         android:numColumns="2"
         android:stretchMode="columnWidth"
-        />
+        android:verticalSpacing="10dp" />
 
     <com.google.android.gms.ads.AdView
         xmlns:ads="http://schemas.android.com/apk/res-auto"
