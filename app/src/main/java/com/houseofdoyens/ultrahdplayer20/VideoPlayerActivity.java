@@ -2,6 +2,7 @@ package com.houseofdoyens.ultrahdplayer20;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.pm.ActivityInfo;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.net.Uri;
@@ -23,11 +24,13 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -51,6 +54,7 @@ import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class VideoPlayerActivity extends AppCompatActivity {
 
@@ -63,11 +67,13 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private static final String TAG = "PlayerActivity";
     static ArrayList<String> AllVideosName = new ArrayList<>();
     static ArrayList<String> AllVideosPath = new ArrayList<>();
+    static ArrayList<String> AllVideosRes = new ArrayList<>();
 
 
     private SimpleExoPlayer player;
     private SimpleExoPlayerView playerView;
     private ComponentListener componentListener;
+    private ActivityInfo activityInfo;
 
     private Bundle bundle;
 
@@ -75,14 +81,9 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private int currentWindow;
     private boolean playWhenReady = true;
     private ImageView repeat;
+    private String resolution;
+    private int width, height;
 
-    private boolean mExoPlayerFullscreen = false;
-    private FrameLayout mFullScreenButton;
-    private ImageView mFullScreenIcon;
-    private Dialog mFullScreenDialog;
-
-    private int mResumeWindow;
-    private long mResumePosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,73 +97,13 @@ public class VideoPlayerActivity extends AppCompatActivity {
         IconDrawable repeatIcon = new IconDrawable(this, FontAwesomeIcons.fa_repeat).colorRes(R.color.colorWhite).actionBarSize();
         repeat.setImageDrawable(repeatIcon);
 
-        if (savedInstanceState != null) {
-            mResumeWindow = savedInstanceState.getInt(STATE_RESUME_WINDOW);
-            mResumePosition = savedInstanceState.getLong(STATE_RESUME_POSITION);
-            mExoPlayerFullscreen = savedInstanceState.getBoolean(STATE_PLAYER_FULLSCREEN);
-        }
-
         bundle = getIntent().getExtras();
-        AllVideosName = bundle.getStringArrayList("videNameArray");
-        AllVideosPath = bundle.getStringArrayList("videPathArray");
-    }
-
-
-    private void initFullscreenDialog() {
-
-        mFullScreenDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen) {
-            public void onBackPressed() {
-                if (mExoPlayerFullscreen)
-                    closeFullscreenDialog();
-                super.onBackPressed();
-            }
-        };
-    }
-
-
-    private void openFullscreenDialog() {
-
-        ((ViewGroup) playerView.getParent()).removeView(playerView);
-        mFullScreenDialog.addContentView(playerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_skrink));
-        mExoPlayerFullscreen = true;
-        mFullScreenDialog.show();
-    }
-
-
-    private void closeFullscreenDialog() {
-
-        ((ViewGroup) playerView.getParent()).removeView(playerView);
-//        ((FrameLayout) findViewById(R.id.main_media_frame)).addView(playerView);
-        mExoPlayerFullscreen = false;
-        mFullScreenDialog.dismiss();
-        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_expand));
-    }
-
-
-    private void initFullscreenButton() {
-
-        PlaybackControlView controlView = findViewById(R.id.exo_controller);
-        mFullScreenIcon = controlView.findViewById(R.id.exo_fullscreen_icon);
-        mFullScreenButton = controlView.findViewById(R.id.exo_fullscreen_button);
-        mFullScreenButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!mExoPlayerFullscreen)
-                    openFullscreenDialog();
-                else
-                    closeFullscreenDialog();
-            }
-        });
+        AllVideosName = bundle.getStringArrayList("videoNameArray");
+        AllVideosPath = bundle.getStringArrayList("videoPathArray");
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-
-        outState.putInt(STATE_RESUME_WINDOW, mResumeWindow);
-        outState.putLong(STATE_RESUME_POSITION, mResumePosition);
-        outState.putBoolean(STATE_PLAYER_FULLSCREEN, mExoPlayerFullscreen);
-
         super.onSaveInstanceState(outState);
     }
 
@@ -177,8 +118,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        initFullscreenDialog();
-        initFullscreenButton();
         hideSystemUi();
         if ((Util.SDK_INT <= 23 || player == null)) {
             initializePlayer();
@@ -216,18 +155,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
             player.setPlayWhenReady(playWhenReady);
             player.seekTo(currentWindow, playbackPosition);
 
-            boolean haveResumePosition = mResumeWindow != C.INDEX_UNSET;
-
-            if (haveResumePosition) {
-                playerView.getPlayer().seekTo(mResumeWindow, mResumePosition);
-            }
 
         }
         bundle = getIntent().getExtras();
         String src = bundle.getString("videoPath");
-
-        ArrayList<VideoViewInfo> videos = new ArrayList<>();
-        new GetVideos().getAllVideosData(this, videos);
 
         ImageView repeat = findViewById(R.id.exo_repeat_toggle);
         repeat.setOnClickListener(new View.OnClickListener() {
@@ -237,26 +168,21 @@ public class VideoPlayerActivity extends AppCompatActivity {
             }
         });
 
-       /* MediaSource[] mediaSources = new MediaSource[videos.size()];
-        for (int i = 0; i < videos.size(); i++) {
-            mediaSources[i] = buildMediaSourceLocal( Uri.fromFile( new File ( videos.get(i).getFilePath() ) ) );
+        /*Making a Playlist of all the videos in playlist*/
+        MediaSource[] mediaSources = new MediaSource[AllVideosPath.size()];
+        int i;
+        for (i = 0; i < AllVideosPath.size(); i++) {
+            mediaSources[i] = buildMediaSourceLocal( Uri.fromFile( new File ( AllVideosPath.get(i) ) ) );
+//            Log.i( TAG, ""+Uri.fromFile( new File ( AllVideosPath.get(i) ) ) );
         }
+        /* Checking if There are multiple videos in playlist or 1*/
         MediaSource mediaSource = mediaSources.length == 1 ? mediaSources[0]
                 : new ConcatenatingMediaSource(mediaSources);
-        player.seekTo(position,0);*/
-
-//        MediaExtractor extractor = new MediaExtractor();
-//        MediaFormat format = extractor.getTrackFormat(0);
-//        if (format.containsKey("rotation-degrees")) {
-//            // Decoded video is rotated automatically in Android 5.0 lollipop.
-//            // refer: https://android.googlesource.com/platform/frameworks/av/+blame/lollipop-release/media/libstagefright/Utils.cpp
-//            format.setInteger("rotation-degrees", 0);
-//        }
-
-        MediaSource mediaSource = buildMediaSourceLocal(Uri.fromFile(new File(src)));
+        /* Playing the currently selected video */
+        player.seekTo(AllVideosPath.indexOf(src),0);
         player.prepare(mediaSource, true, false);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
-
 
 
     private void releasePlayer() {
@@ -279,6 +205,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         return new ExtractorMediaSource(uri, dataSourceFactory,
                 new DefaultExtractorsFactory(), null, null);
     }
+
     /*Can be used for online links*/
     private MediaSource buildMediaSource(Uri uri) {
         DataSource.Factory dataSourceFactory = new DefaultHttpDataSourceFactory("ua", BANDWIDTH_METER);
@@ -318,16 +245,16 @@ public class VideoPlayerActivity extends AppCompatActivity {
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             String stateString;
             switch (playbackState) {
-                case ExoPlayer.STATE_IDLE:
+                case Player.STATE_IDLE:
                     stateString = "ExoPlayer.STATE_IDLE      -";
                     break;
-                case ExoPlayer.STATE_BUFFERING:
+                case Player.STATE_BUFFERING:
                     stateString = "ExoPlayer.STATE_BUFFERING -";
                     break;
-                case ExoPlayer.STATE_READY:
+                case Player.STATE_READY:
                     stateString = "ExoPlayer.STATE_READY     -";
                     break;
-                case ExoPlayer.STATE_ENDED:
+                case Player.STATE_ENDED:
                     stateString = "ExoPlayer.STATE_ENDED     -";
                     break;
                 default:
@@ -335,6 +262,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     break;
             }
             Log.d(TAG, "changed state to " + stateString + " playWhenReady: " + playWhenReady);
+        }
+
+        @Override
+        public void onRepeatModeChanged(int repeatMode) {
+
         }
 
 
@@ -376,7 +308,13 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         @Override
         public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-            Log.i(TAG, width+"*"+height+"/"+unappliedRotationDegrees+"/"+pixelWidthHeightRatio);
+            Log.i(TAG, width + "*" + height + "/" + unappliedRotationDegrees + "/" + pixelWidthHeightRatio);
+            activityInfo = new ActivityInfo();
+            if(width < height){
+                setRequestedOrientation(activityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            }else{
+                setRequestedOrientation(activityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            }
         }
 
         @Override
