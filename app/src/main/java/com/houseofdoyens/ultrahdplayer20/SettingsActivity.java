@@ -1,12 +1,17 @@
 package com.houseofdoyens.ultrahdplayer20;
 
+import android.content.ContentResolver;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.media.AudioManager;
 import android.os.Build;
+import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -17,14 +22,15 @@ import com.joanzapata.iconify.IconDrawable;
 import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 
 public class SettingsActivity extends AppCompatActivity
-        implements View.OnClickListener{
+        implements View.OnClickListener {
 
     /* class variables and attributes */
     private IconDrawable sun, vol, skin, mics;
-    private ImageView blue_default,  red, pink, blue, green, yellow;
+    private ImageView blue_default, red, pink, blue, green, yellow;
     private String themeColor = null;
     private String statusBarColor = null;
     private Button rate_us, share;
+    private SeekBar brightBar, volumeBar;
 
     AppPreferences properties;
 
@@ -40,22 +46,24 @@ public class SettingsActivity extends AppCompatActivity
         fullAd = AdManager.getAd();
         if (fullAd.isLoaded()) {
             fullAd.show();
-        }else{
+        } else {
             AdManager.createAd(this);
         }
 
         /* Setting up icons and seek bar */
-        vol = new IconDrawable(this, FontAwesomeIcons.fa_volume_up).colorRes(R.color.colorAccent).sizeDp(25);
+        vol = new IconDrawable(this, FontAwesomeIcons.fa_music).colorRes(R.color.colorAccent).sizeDp(25);
         sun = new IconDrawable(this, FontAwesomeIcons.fa_sun_o).colorRes(R.color.colorAccent).sizeDp(25);
-        SeekBar brightBar = (SeekBar) findViewById(R.id.BrightnessBar);
-        SeekBar volBar = (SeekBar) findViewById(R.id.volumeBar);
+        brightBar = (SeekBar) findViewById(R.id.BrightnessBar);
+        volumeBar = (SeekBar) findViewById(R.id.volumeBar);
 
 //        rate_us = (Button) findViewById(R.id.rate_us);
 //        share = (Button) findViewById(R.id.share_app);
 
         brightBar.setThumb(sun);
-        volBar.setThumb(vol);
-
+        volumeBar.setThumb(vol);
+        /* Brightness and Volume */
+        setBrightness();
+        setVolumeBar();
         /*Setting up themes and adding on click listener*/
         blue_default = (ImageView) findViewById(R.id.blue_default);
         red = (ImageView) findViewById(R.id.red);
@@ -88,9 +96,83 @@ public class SettingsActivity extends AppCompatActivity
 
         if (fullAd.isLoaded()) {
             fullAd.show();
-        }else{
+        } else {
             AdManager.createAd(this);
         }
+    }
+
+    private void setBrightness() {
+
+        brightBar.setMax(255);
+        float curBrightnessValue = 0;
+
+        try {
+            curBrightnessValue = android.provider.Settings.System.getInt(
+                    getContentResolver(),
+                    android.provider.Settings.System.SCREEN_BRIGHTNESS);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+        int screen_brightness = (int) curBrightnessValue;
+        brightBar.setProgress(screen_brightness);
+
+        brightBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int progress = 0;
+
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progresValue,
+                                          boolean fromUser) {
+                progress = progresValue;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                android.provider.Settings.System.putInt(getContentResolver(),
+                        android.provider.Settings.System.SCREEN_BRIGHTNESS,
+                        progress);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                android.provider.Settings.System.putInt(getContentResolver(),
+                        android.provider.Settings.System.SCREEN_BRIGHTNESS,
+                        progress);
+            }
+        });
+    }
+
+    private void setVolumeBar() {
+
+        final AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int a = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int c = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        /*volumeBar.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                // TODO Auto-generated method stub*/
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 20, 0);
+//                volumeBar.setProgress(AudioManager.STREAM_RING);
+       /*     }
+        });*/
+
+        volumeBar.setMax(a);
+        volumeBar.setProgress(c);
+        volumeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onStopTrackingTouch(SeekBar arg0) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar arg0) {
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, arg1, 0);
+            }
+        });
     }
 
     public void changeTheme(String statusBarColor, String realThemeColor) {
@@ -103,7 +185,6 @@ public class SettingsActivity extends AppCompatActivity
 //        share.setBackground(themeColor);
 //        rate_us.setBackground(themeColor);
     }
-
 
 
     @Override
