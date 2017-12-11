@@ -6,6 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
+        android:background="@android:color/transparent"
         android:keepScreenOn="true">
 
         <!-- Video surface will be inserted as the first child of the content frame. -->
@@ -14,12 +15,14 @@
             android:id="@id/exo_shutter"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@android:color/black" />
+            android:background="@android:color/transparent"
+            android:scaleType="fitXY" />
 
         <ImageView
             android:id="@id/exo_artwork"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@android:color/transparent"
             android:scaleType="fitXY" />
 
         <com.google.android.exoplayer2.ui.SubtitleView

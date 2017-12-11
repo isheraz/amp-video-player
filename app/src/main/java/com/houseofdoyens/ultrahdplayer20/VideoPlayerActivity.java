@@ -1,22 +1,15 @@
 package com.houseofdoyens.ultrahdplayer20;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.pm.ActivityInfo;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Surface;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 
-import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -41,7 +34,7 @@ import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
-import com.google.android.exoplayer2.ui.PlaybackControlView;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
@@ -49,20 +42,17 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.FileDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
-import com.joanzapata.iconify.IconDrawable;
-import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
+
+import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.*;
+
 
 public class VideoPlayerActivity extends AppCompatActivity {
 
     // bandwidth meter to measure and estimate bandwidth
     private static final DefaultBandwidthMeter BANDWIDTH_METER = new DefaultBandwidthMeter();
-    private final String STATE_RESUME_WINDOW = "resumeWindow";
-    private final String STATE_RESUME_POSITION = "resumePosition";
-    private final String STATE_PLAYER_FULLSCREEN = "playerFullscreen";
 
     private static final String TAG = "PlayerActivity";
     static ArrayList<String> AllVideosName = new ArrayList<>();
@@ -80,10 +70,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private long playbackPosition;
     private int currentWindow;
     private boolean playWhenReady = true;
-    private ImageView repeat;
-    private String resolution;
-    private int width, height;
-
+    private FrameLayout rotate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,10 +79,21 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         componentListener = new ComponentListener();
         playerView = (SimpleExoPlayerView) findViewById(R.id.video_view);
-        repeat = (ImageView) findViewById(R.id.exo_repeat_toggle);
+        playerView.setResizeMode(RESIZE_MODE_ZOOM);
 
-        IconDrawable repeatIcon = new IconDrawable(this, FontAwesomeIcons.fa_repeat).colorRes(R.color.colorWhite).actionBarSize();
-        repeat.setImageDrawable(repeatIcon);
+
+        rotate = (FrameLayout) findViewById(R.id.exo_fullscreen_button);
+        rotate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getRequestedOrientation() == activityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                    setRequestedOrientation(activityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+                } else {
+                    setRequestedOrientation(activityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                }
+            }
+        });
 
         bundle = getIntent().getExtras();
         AllVideosName = bundle.getStringArrayList("videoNameArray");
@@ -146,8 +144,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
             TrackSelection.Factory adaptiveTrackSelectionFactory =
                     new AdaptiveTrackSelection.Factory(BANDWIDTH_METER);
             // using a DefaultTrackSelector with an adaptive video selection factory
-            player = ExoPlayerFactory.newSimpleInstance(new DefaultRenderersFactory(this),
-                    new DefaultTrackSelector(adaptiveTrackSelectionFactory), new DefaultLoadControl());
+            player = ExoPlayerFactory.newSimpleInstance(
+                    new DefaultRenderersFactory(this),
+                    new DefaultTrackSelector(adaptiveTrackSelectionFactory),
+                    new DefaultLoadControl()
+            );
             player.addListener(componentListener);
             player.setVideoDebugListener(componentListener);
             player.setAudioDebugListener(componentListener);
@@ -160,26 +161,17 @@ public class VideoPlayerActivity extends AppCompatActivity {
         bundle = getIntent().getExtras();
         String src = bundle.getString("videoPath");
 
-        ImageView repeat = findViewById(R.id.exo_repeat_toggle);
-        repeat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                playerView.hideController();
-            }
-        });
-
         /*Making a Playlist of all the videos in playlist*/
         MediaSource[] mediaSources = new MediaSource[AllVideosPath.size()];
         int i;
         for (i = 0; i < AllVideosPath.size(); i++) {
-            mediaSources[i] = buildMediaSourceLocal( Uri.fromFile( new File ( AllVideosPath.get(i) ) ) );
-//            Log.i( TAG, ""+Uri.fromFile( new File ( AllVideosPath.get(i) ) ) );
+            mediaSources[i] = buildMediaSourceLocal(Uri.fromFile(new File(AllVideosPath.get(i))));
         }
         /* Checking if There are multiple videos in playlist or 1*/
         MediaSource mediaSource = mediaSources.length == 1 ? mediaSources[0]
                 : new ConcatenatingMediaSource(mediaSources);
         /* Playing the currently selected video */
-        player.seekTo(AllVideosPath.indexOf(src),0);
+        player.seekTo(AllVideosPath.indexOf(src), 0);
         player.prepare(mediaSource, true, false);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
     }
@@ -191,7 +183,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
             currentWindow = player.getCurrentWindowIndex();
             playWhenReady = player.getPlayWhenReady();
             player.removeListener(componentListener);
-            player.setVideoListener(null);
+            player.addVideoListener(null);
             player.setVideoDebugListener(null);
             player.setAudioDebugListener(null);
             player.release();
@@ -223,6 +215,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
+
 
     private class ComponentListener implements ExoPlayer.EventListener, VideoRendererEventListener,
             AudioRendererEventListener {
@@ -269,6 +262,9 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         }
 
+        @Override
+        public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+        }
 
         @Override
         public void onPlayerError(ExoPlaybackException error) {
@@ -276,14 +272,18 @@ public class VideoPlayerActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onPositionDiscontinuity() {
+        public void onPositionDiscontinuity(int reason) {
 
         }
-
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
             // Do nothing.
+        }
+
+        @Override
+        public void onSeekProcessed() {
+
         }
 
         @Override
@@ -308,11 +308,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         @Override
         public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-            Log.i(TAG, width + "*" + height + "/" + unappliedRotationDegrees + "/" + pixelWidthHeightRatio);
+//            Log.i(TAG, width + "*" + height + "/" + unappliedRotationDegrees + "/" + pixelWidthHeightRatio);
             activityInfo = new ActivityInfo();
-            if(width < height){
+            if (width <= height) {
                 setRequestedOrientation(activityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            }else{
+            } else {
                 setRequestedOrientation(activityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             }
         }
@@ -348,7 +348,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+        public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
 
         }
 
@@ -358,5 +358,4 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         }
     }
-
 }

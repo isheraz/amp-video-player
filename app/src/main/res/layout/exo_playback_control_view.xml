@@ -23,10 +23,6 @@
             style="@style/ExoMediaButton.Rewind" />
 
         <ImageButton
-            android:id="@+id/exo_repeat_toggle"
-            style="@style/ExoMediaButton" />
-
-        <ImageButton
             android:id="@id/exo_play"
             style="@style/ExoMediaButton.Play"
             android:contentDescription="@string/play_pause" />
@@ -89,10 +85,11 @@
 
             <ImageView
                 android:id="@+id/exo_fullscreen_icon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:adjustViewBounds="true"
+                android:cropToPadding="false"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_fullscreen_expand" />
 

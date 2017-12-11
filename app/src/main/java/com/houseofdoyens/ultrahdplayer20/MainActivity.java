@@ -8,8 +8,10 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,6 +20,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -49,7 +52,7 @@ public class MainActivity extends AppCompatActivity
     private IconDrawable play, settings, amp, search, hamburger;
     private AdView adView;
     private InterstitialAd fullAd;
-//    private static AdManager ads;
+    //    private static AdManager ads;
     private AdRequest adRequest;
     private Intent page;
     private View mLayout;
@@ -124,7 +127,6 @@ public class MainActivity extends AppCompatActivity
         } else {
             populateFolders();
         }
-
     }
 
     @Override
@@ -139,7 +141,7 @@ public class MainActivity extends AppCompatActivity
         fullAd = AdManager.getAd();
         if (fullAd.isLoaded()) {
             fullAd.show();
-        }else{
+        } else {
             AdManager.createAd(this);
         }
         adView.loadAd(adRequest);
@@ -152,15 +154,15 @@ public class MainActivity extends AppCompatActivity
         ActionBar actionBar = getSupportActionBar();
         ColorDrawable themeColor = new ColorDrawable(Color.parseColor(realThemeColor));
         actionBar.setBackgroundDrawable(themeColor);
-        int[][] states = new int[][] {
-                new int[] { android.R.attr.state_enabled}, // enabled
-                new int[] {-android.R.attr.state_enabled}, // disabled
-                new int[] {-android.R.attr.state_checked}, // unchecked
-                new int[] { android.R.attr.state_pressed}  // pressed
+        int[][] states = new int[][]{
+                new int[]{android.R.attr.state_enabled}, // enabled
+                new int[]{-android.R.attr.state_enabled}, // disabled
+                new int[]{-android.R.attr.state_checked}, // unchecked
+                new int[]{android.R.attr.state_pressed}  // pressed
         };
 
-        int[] colors = new int[] {
-               Color.parseColor(realThemeColor),
+        int[] colors = new int[]{
+                Color.parseColor(realThemeColor),
                 Color.RED,
                 Color.GREEN,
                 Color.parseColor(statusBarColor)

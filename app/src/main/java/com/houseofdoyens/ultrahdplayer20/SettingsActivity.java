@@ -1,15 +1,24 @@
 package com.houseofdoyens.ultrahdplayer20;
 
+import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -35,7 +44,6 @@ public class SettingsActivity extends AppCompatActivity
     AppPreferences properties;
 
     private InterstitialAd fullAd;
-    private static AdManager ads;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +66,6 @@ public class SettingsActivity extends AppCompatActivity
 
 //        rate_us = (Button) findViewById(R.id.rate_us);
 //        share = (Button) findViewById(R.id.share_app);
-
         brightBar.setThumb(sun);
         volumeBar.setThumb(vol);
         /* Brightness and Volume */
@@ -84,6 +91,24 @@ public class SettingsActivity extends AppCompatActivity
         String statusBarColor = properties.preferences.getString("statusBar_color", "#303F9F");
         String realThemeColor = properties.preferences.getString("actionBar_color", "#3F51B5");
         changeTheme(statusBarColor, realThemeColor);
+        requestReadWriteSystemPermission(this);
+    }
+
+    private void requestReadWriteSystemPermission(Activity activity) {
+        String requiredPermission = Manifest.permission.WRITE_SETTINGS;
+        if (!(ContextCompat.checkSelfPermission(this, requiredPermission) == PackageManager.PERMISSION_GRANTED)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.System.canWrite(this)) {
+
+                } else {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                    intent.setData(Uri.parse("package:" + this.getPackageName()));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                }
+            }
+        }
+//        ActivityCompat.requestPermissions(activity, new String[]{requiredPermission}, PERMI);
     }
 
     @Override
@@ -102,10 +127,8 @@ public class SettingsActivity extends AppCompatActivity
     }
 
     private void setBrightness() {
-
         brightBar.setMax(255);
         float curBrightnessValue = 0;
-
         try {
             curBrightnessValue = android.provider.Settings.System.getInt(
                     getContentResolver(),
@@ -119,7 +142,6 @@ public class SettingsActivity extends AppCompatActivity
         brightBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int progress = 0;
 
-
             @Override
             public void onProgressChanged(SeekBar seekBar, int progresValue,
                                           boolean fromUser) {
@@ -128,35 +150,32 @@ public class SettingsActivity extends AppCompatActivity
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                android.provider.Settings.System.putInt(getContentResolver(),
-                        android.provider.Settings.System.SCREEN_BRIGHTNESS,
-                        progress);
+//                android.provider.Settings.System.putInt(getContentResolver(),
+//                        android.provider.Settings.System.SCREEN_BRIGHTNESS,
+//                        progress);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+//                Log.i("Brightness", progress+" ");
                 android.provider.Settings.System.putInt(getContentResolver(),
                         android.provider.Settings.System.SCREEN_BRIGHTNESS,
                         progress);
+
+                ContentResolver cResolver = getContentResolver();
+                Settings.System.putInt(cResolver, Settings.System.SCREEN_BRIGHTNESS, progress);
             }
         });
     }
 
+
+    /*Volume Settings*/
     private void setVolumeBar() {
 
         final AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int a = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int c = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        /*volumeBar.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View arg0) {
-                // TODO Auto-generated method stub*/
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 20, 0);
-//                volumeBar.setProgress(AudioManager.STREAM_RING);
-       /*     }
-        });*/
-
         volumeBar.setMax(a);
         volumeBar.setProgress(c);
         volumeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
