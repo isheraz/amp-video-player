@@ -225,6 +225,8 @@ public class MainActivity extends AppCompatActivity
         /*What Meny item is selected*/
         switch (id) {
             case R.id.action_amp:
+                page = new Intent(this, EquilizerActivity.class);
+                this.startActivity(page);
                 break;
 
             case R.id.action_search:

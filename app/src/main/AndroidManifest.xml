@@ -9,7 +9,9 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
 
     <application
@@ -41,14 +43,16 @@
             android:theme="@android:style/Theme.Translucent" />
         <activity android:name=".SettingsActivity" />
         <activity android:name=".FolderVideosActivity" />
-        <activity android:name=".VideoPlayerActivity"
-            android:configChanges="orientation|screenSize"
-            />
+        <activity
+            android:name=".VideoPlayerActivity"
+            android:configChanges="orientation|screenSize" />
 
         <service
             android:name=".FloatingVideo"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity android:name=".EquilizerActivity"></activity>
     </application>
 
 </manifest>

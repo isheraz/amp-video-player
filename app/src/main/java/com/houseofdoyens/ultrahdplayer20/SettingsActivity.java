@@ -92,6 +92,15 @@ public class SettingsActivity extends AppCompatActivity
         String realThemeColor = properties.preferences.getString("actionBar_color", "#3F51B5");
         changeTheme(statusBarColor, realThemeColor);
         requestReadWriteSystemPermission(this);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
     }
 
     private void requestReadWriteSystemPermission(Activity activity) {
