@@ -7,9 +7,11 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
+import android.media.audiofx.PresetReverb;
 import android.media.audiofx.Visualizer;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -18,6 +20,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,9 +33,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.ExoPlayer;
+import com.joanzapata.iconify.IconDrawable;
+import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.houseofdoyens.ultrahdplayer20.R.drawable.eq_seekbar;
 
 public class EquilizerActivity extends AppCompatActivity {
 
@@ -46,12 +53,21 @@ public class EquilizerActivity extends AppCompatActivity {
     private LinearLayout mLinearLayout;
     private VisualizerView mVisualizerView;
 
+    private String statusBarColor, realThemeColor;
+
     AppPreferences properties;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_equilizer);
+        properties = AppPreferences.getInstance();
+        properties.preferences = getSharedPreferences(properties.app, Context.MODE_PRIVATE);
+        properties.edit_preferences = properties.preferences.edit();
+
+        statusBarColor = properties.preferences.getString("statusBar_color", "#303F9F");
+        realThemeColor = properties.preferences.getString("actionBar_color", "#3F51B5");
+        changeTheme(statusBarColor, realThemeColor);
 //        set the device's volume control to control the audio stream we'll be playing
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
@@ -84,15 +100,7 @@ public class EquilizerActivity extends AppCompatActivity {
                 mVisualizer.setEnabled(false);
             }
         });
-
-        properties = AppPreferences.getInstance();
-        properties.preferences = getSharedPreferences(properties.app, Context.MODE_PRIVATE);
-        properties.edit_preferences = properties.preferences.edit();
-
-        String statusBarColor = properties.preferences.getString("statusBar_color", "#303F9F");
-        String realThemeColor = properties.preferences.getString("actionBar_color", "#3F51B5");
-        changeTheme(statusBarColor, realThemeColor);
-
+        mVisualizerView.setVisualizerColor(new ColorDrawable(Color.parseColor(realThemeColor)));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
@@ -108,15 +116,14 @@ public class EquilizerActivity extends AppCompatActivity {
     private void equalizeSound() {
 //        set up the spinner
         ArrayList<String> equalizerPresetNames = new ArrayList<String>();
-        ArrayAdapter<String> equalizerPresetSpinnerAdapter
-                = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> equalizerPresetSpinnerAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_item,
                 equalizerPresetNames);
         equalizerPresetSpinnerAdapter
                 .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         Spinner equalizerPresetSpinner = (Spinner) findViewById(R.id.spinner);
-
 //        get list of the device's equalizer presets
+        equalizerPresetNames.add("Custom");
         for (short i = 0; i < mEqualizer.getNumberOfPresets(); i++) {
             equalizerPresetNames.add(mEqualizer.getPresetName(i));
         }
@@ -124,33 +131,37 @@ public class EquilizerActivity extends AppCompatActivity {
         equalizerPresetSpinner.setAdapter(equalizerPresetSpinnerAdapter);
 
 //        handle the spinner item selections
+        int current = properties.preferences.getInt("position", 0);
+        equalizerPresetSpinner.setSelection(current);
         equalizerPresetSpinner.setOnItemSelectedListener(new AdapterView
                 .OnItemSelectedListener() {
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 //first list item selected by default and sets the preset accordingly
-                mEqualizer.usePreset((short) position);
+                if (position != 0) {
+                    mEqualizer.usePreset((short) (position - 1));
+                }
 //                get the number of frequency bands for this equalizer engine
                 short numberFrequencyBands = mEqualizer.getNumberOfBands();
 //                get the lower gain setting for this equalizer band
                 final short lowerEqualizerBandLevel = mEqualizer.getBandLevelRange()[0];
-
 //                set seekBar indicators according to selected preset
                 for (short i = 0; i < numberFrequencyBands; i++) {
-                    short equalizerBandIndex = i;
+                    short equalizerBandIndex = (short) (i);
                     SeekBar seekBar = (SeekBar) findViewById(equalizerBandIndex);
 //                    get current gain setting for this equalizer band
 //                    set the progress indicator of this seekBar to indicate the current gain value
-                    seekBar.setProgress(mEqualizer
-                            .getBandLevel(equalizerBandIndex) - lowerEqualizerBandLevel);
+                    seekBar.setProgress(mEqualizer.getBandLevel(equalizerBandIndex) - lowerEqualizerBandLevel);
                 }
+                properties.edit_preferences.putInt("position", position).commit();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-//                not used
+//               not used
             }
+
         });
     }
 
@@ -162,11 +173,12 @@ public class EquilizerActivity extends AppCompatActivity {
         mLinearLayout = (LinearLayout) findViewById(R.id.linearLayoutEqual);
 
 //        equalizer heading
-        TextView equalizerHeading = new TextView(this);
-        equalizerHeading.setText("Equalizer");
-        equalizerHeading.setTextSize(20);
-        equalizerHeading.setGravity(Gravity.CENTER_HORIZONTAL);
-        mLinearLayout.addView(equalizerHeading);
+//        TextView equalizerHeading = new TextView(this);
+//        equalizerHeading.setText("Equalizer");
+//        equalizerHeading.setTextSize(20);
+//        equalizerHeading.setGravity(Gravity.CENTER_HORIZONTAL);
+//        mLinearLayout.addView(equalizerHeading);
+        mLinearLayout.setPadding(0, 0, 0, 20);
 
 //        get number frequency bands supported by the equalizer engine
         short numberFrequencyBands = mEqualizer.getNumberOfBands();
@@ -202,30 +214,49 @@ public class EquilizerActivity extends AppCompatActivity {
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
             lowerEqualizerBandLevelTextview.setText((lowerEqualizerBandLevel / 100) + " dB");
+            lowerEqualizerBandLevelTextview.setRotation(90);
 //            set up upper level textview for this seekBar
             TextView upperEqualizerBandLevelTextview = new TextView(this);
             upperEqualizerBandLevelTextview.setLayoutParams(new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
             upperEqualizerBandLevelTextview.setText((upperEqualizerBandLevel / 100) + " dB");
+            upperEqualizerBandLevelTextview.setRotation(90);
+
 
             //            **********  the seekBar  **************
 //            set the layout parameters for the seekbar
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
+                    ViewGroup.LayoutParams.MATCH_PARENT - 60,
+                    120);
             layoutParams.weight = 1;
 
 //            create a new seekBar
             SeekBar seekBar = new SeekBar(this);
 //            give the seekBar an ID
             seekBar.setId(i);
+            ColorDrawable seekbg;
+            seekbg = new ColorDrawable(Color.parseColor(realThemeColor));
+            seekbg.setAlpha(90);
+//            seekBar.setBackground(new ColorDrawable(Color.rgb(201, 224, 203)));
+            seekBar.setBackground(seekbg);
+            seekBar.setPadding(35, 15, 35, 15);
 
             seekBar.setLayoutParams(layoutParams);
             seekBar.setMax(upperEqualizerBandLevel - lowerEqualizerBandLevel);
 //            set the progress for this seekBar
-            seekBar.setProgress(mEqualizer.getBandLevel(equalizerBandIndex));
-
+            final int seek_id = i;
+            int progressBar = properties.preferences.getInt("seek_" + seek_id, 1500);
+//            Log.i("storedOld_seek_"+seek_id,":"+ progressBar);
+            if (progressBar != 1500) {
+                seekBar.setProgress(progressBar);
+                mEqualizer.setBandLevel(equalizerBandIndex,
+                        (short) (progressBar + lowerEqualizerBandLevel));
+            } else {
+                seekBar.setProgress(mEqualizer.getBandLevel(equalizerBandIndex));
+                mEqualizer.setBandLevel(equalizerBandIndex,
+                        (short) (progressBar + lowerEqualizerBandLevel));
+            }
 //            change progress as its changed by moving the sliders
             seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 public void onProgressChanged(SeekBar seekBar, int progress,
@@ -240,8 +271,23 @@ public class EquilizerActivity extends AppCompatActivity {
 
                 public void onStopTrackingTouch(SeekBar seekBar) {
                     //not used
+                    properties.edit_preferences.putInt("seek_" + seek_id, seekBar.getProgress()).commit();
+//                    properties.edit_preferences.putInt("position", 0).commit();
                 }
             });
+
+            IconDrawable equalizer = new IconDrawable(this, FontAwesomeIcons.fa_minus_square).colorRes(R.color.colorAccent);
+            equalizer.actionBarSize();
+            seekBar.setThumb(equalizer);
+            seekBar.setProgressDrawable(new ColorDrawable(Color.rgb(56, 60, 62)));
+// seekbar row layout settings. The layout is rotated at 270 so left=>bottom, Right=>top and so on
+            LinearLayout.LayoutParams seekBarLayout = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            );
+            seekBarLayout.weight = 1;
+            seekBarLayout.setMargins(5, 0, 5, 0);
+            seekBarRowLayout.setLayoutParams(seekBarLayout);
 
 //            add the lower and upper band level textviews and the seekBar to the row layout
             seekBarRowLayout.addView(lowerEqualizerBandLevelTextview);
@@ -253,6 +299,8 @@ public class EquilizerActivity extends AppCompatActivity {
             //        show the spinner
             equalizeSound();
         }
+        mLinearLayout.setRotation(270);
+
     }
 
     /*displays the audio waveform*/
@@ -283,7 +331,6 @@ public class EquilizerActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
         if (isFinishing() && mMediaPlayer != null) {
             mVisualizer.release();
             mEqualizer.release();
@@ -328,7 +375,5 @@ public class EquilizerActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         ColorDrawable themeColor = new ColorDrawable(Color.parseColor(realThemeColor));
         actionBar.setBackgroundDrawable(themeColor);
-        mVisualizerView.setVisualizerColor(themeColor);
-
     }
 }

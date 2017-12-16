@@ -16,6 +16,7 @@
         android:paddingLeft="5dp"
         android:paddingRight="5dp"
         android:text="@string/note"
+        android:textColor="#0a0a0a"
         android:textSize="18sp" />
 
     <LinearLayout
@@ -43,9 +44,9 @@
         android:id="@+id/linearLayoutEqual"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3"
-        android:orientation="vertical"
-        android:padding="5dp" />
+        android:layout_margin="20dp"
+        android:layout_weight="4"
+        android:orientation="vertical" />
 
 </LinearLayout>
 
