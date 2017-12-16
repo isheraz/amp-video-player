@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.google.android.exoplayer2.ui.AspectRatioFrameLayout
         android:id="@id/exo_content_frame"
@@ -8,6 +9,21 @@
         android:layout_gravity="center"
         android:background="@android:color/transparent"
         android:keepScreenOn="true">
+
+        <android.support.design.widget.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/transparent">
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar_player"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:layout_weight="1"
+                android:background="@drawable/transparent" />
+        </android.support.design.widget.AppBarLayout>
 
         <!-- Video surface will be inserted as the first child of the content frame. -->
 
@@ -45,6 +61,6 @@
     <FrameLayout
         android:id="@id/exo_overlay"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" ></FrameLayout>
 
 </merge>

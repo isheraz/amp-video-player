@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_equalizer"
+        android:title="@string/equalizer"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_ratio"
+        android:title="@string/aspect_ratio"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_screenshot"
+        android:title="@string/screenshot"
+        app:showAsAction="always"/>
+</menu>

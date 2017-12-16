@@ -26,6 +26,9 @@
     <string name="share_app">Share Application</string>
     <string name="play_pause">Play/Pause</string>
     <string name="note">We\'re playing a background music to assist you adjust the sound output.</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="aspect_ratio">Ratio</string>
+    <string name="screenshot">Screenshot</string>
 
 
 </resources>

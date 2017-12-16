@@ -4,23 +4,19 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.audiofx.Equalizer;
-import android.media.audiofx.PresetReverb;
 import android.media.audiofx.Visualizer;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,14 +28,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.exoplayer2.ExoPlayer;
 import com.joanzapata.iconify.IconDrawable;
 import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import static com.houseofdoyens.ultrahdplayer20.R.drawable.eq_seekbar;
 
 public class EquilizerActivity extends AppCompatActivity {
 
@@ -263,6 +256,7 @@ public class EquilizerActivity extends AppCompatActivity {
                                               boolean fromUser) {
                     mEqualizer.setBandLevel(equalizerBandIndex,
                             (short) (progress + lowerEqualizerBandLevel));
+
                 }
 
                 public void onStartTrackingTouch(SeekBar seekBar) {
@@ -272,7 +266,7 @@ public class EquilizerActivity extends AppCompatActivity {
                 public void onStopTrackingTouch(SeekBar seekBar) {
                     //not used
                     properties.edit_preferences.putInt("seek_" + seek_id, seekBar.getProgress()).commit();
-//                    properties.edit_preferences.putInt("position", 0).commit();
+                    properties.edit_preferences.putInt("position", 0).commit();
                 }
             });
 

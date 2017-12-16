@@ -1,11 +1,15 @@
 package com.houseofdoyens.ultrahdplayer20;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.media.AudioManager;
+import android.media.audiofx.Equalizer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -23,6 +27,7 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -42,6 +47,9 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.FileDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
+import com.joanzapata.iconify.IconDrawable;
+import com.joanzapata.iconify.fonts.EntypoIcons;
+import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -59,6 +67,12 @@ public class VideoPlayerActivity extends AppCompatActivity {
     static ArrayList<String> AllVideosPath = new ArrayList<>();
     static ArrayList<String> AllVideosRes = new ArrayList<>();
 
+    /*Setting up Icons*/
+    private IconDrawable eq, ratio, screenshot;
+
+    /*Adding Equalizer*/
+    private Equalizer mEqualizer;
+
 
     private SimpleExoPlayer player;
     private SimpleExoPlayerView playerView;
@@ -66,6 +80,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private ActivityInfo activityInfo;
 
     private Bundle bundle;
+    private AppPreferences properties;
 
     private long playbackPosition;
     private int currentWindow;
@@ -76,6 +91,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_player);
+
+        properties = AppPreferences.getInstance();
+        properties.preferences = getSharedPreferences(properties.app, Context.MODE_PRIVATE);
+        properties.edit_preferences = properties.preferences.edit();
 
         componentListener = new ComponentListener();
         playerView = (SimpleExoPlayerView) findViewById(R.id.video_view);
@@ -95,9 +114,83 @@ public class VideoPlayerActivity extends AppCompatActivity {
             }
         });
 
+        /*Equalizer Initialization*/
+
         bundle = getIntent().getExtras();
         AllVideosName = bundle.getStringArrayList("videoNameArray");
         AllVideosPath = bundle.getStringArrayList("videoPathArray");
+    }
+
+    private void setupEqualizer() {
+        player.setAudioDebugListener(new AudioRendererEventListener() {
+
+            @Override
+            public void onAudioEnabled(DecoderCounters counters) {
+
+            }
+
+            @Override
+            public void onAudioSessionId(int audioSessionId) {
+                mEqualizer = new Equalizer(1000, audioSessionId);
+                mEqualizer.setEnabled(true);
+                int current = properties.preferences.getInt("position", 0);
+                if (current == 0) {
+                    for (short seek_id = 0; seek_id < mEqualizer.getNumberOfBands(); seek_id++) {
+                        int progressBar = properties.preferences.getInt("seek_" + seek_id, 1500);
+                        short equalizerBandIndex = (short) (seek_id);
+                        final short lowerEqualizerBandLevel = mEqualizer.getBandLevelRange()[0];
+                        Log.i("seek_" + seek_id, ":" + progressBar);
+                        if (progressBar != 1500) {
+                            mEqualizer.setBandLevel(equalizerBandIndex,
+                                    (short) (progressBar + lowerEqualizerBandLevel));
+                        } else {
+                            mEqualizer.setBandLevel(equalizerBandIndex,
+                                    (short) (progressBar + lowerEqualizerBandLevel));
+                        }
+                    }
+                } else {
+                    mEqualizer.usePreset((short) (current - 1));
+                }
+            }
+
+            @Override
+            public void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+
+            }
+
+            @Override
+            public void onAudioInputFormatChanged(Format format) {
+
+            }
+
+            @Override
+            public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+
+            }
+
+            @Override
+            public void onAudioDisabled(DecoderCounters counters) {
+
+            }
+        });
+//        Log.i("Session_id",""+player.getAudioSessionId());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu;
+        // this adds items to the action bar if it is present.
+        /*Icon initialization*/
+        ratio = new IconDrawable(this, FontAwesomeIcons.fa_crop).colorRes(R.color.colorWhite).actionBarSize();
+        eq = new IconDrawable(this, EntypoIcons.entypo_sound_mix).colorRes(R.color.colorWhite).actionBarSize();
+        screenshot = new IconDrawable(this, FontAwesomeIcons.fa_mobile_phone).colorRes(R.color.colorWhite).actionBarSize();
+
+        /*Inflating Menu Items*/
+        getMenuInflater().inflate(R.menu.video_player_menu, menu);
+        menu.findItem(R.id.action_ratio).setIcon(ratio);
+        menu.findItem(R.id.action_equalizer).setIcon(eq);
+        menu.findItem(R.id.action_screenshot).setIcon(screenshot);
+        return true;
     }
 
     @Override
@@ -110,6 +203,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         super.onStart();
         if (Util.SDK_INT > 23) {
             initializePlayer();
+            setupEqualizer();
         }
     }
 
