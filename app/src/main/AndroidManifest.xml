@@ -52,7 +52,7 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".EquilizerActivity"></activity>
+        <activity android:name=".EquilizerActivity" />
     </application>
 
 </manifest>

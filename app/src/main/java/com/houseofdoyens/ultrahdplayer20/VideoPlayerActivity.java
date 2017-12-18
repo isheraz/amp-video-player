@@ -2,17 +2,17 @@ package com.houseofdoyens.ultrahdplayer20;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.media.AudioManager;
 import android.media.audiofx.Equalizer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
 import android.view.Surface;
 import android.view.View;
-import android.widget.FrameLayout;
+import android.widget.Button;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -27,7 +27,6 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -39,7 +38,6 @@ import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
@@ -49,12 +47,16 @@ import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 import com.joanzapata.iconify.IconDrawable;
 import com.joanzapata.iconify.fonts.EntypoIcons;
-import com.joanzapata.iconify.fonts.FontAwesomeIcons;
 
 import java.io.File;
 import java.util.ArrayList;
 
-import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.*;
+import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.OnClickListener;
+import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_FILL;
+import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT;
+import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT;
+import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH;
+import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM;
 
 
 public class VideoPlayerActivity extends AppCompatActivity {
@@ -65,10 +67,9 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private static final String TAG = "PlayerActivity";
     static ArrayList<String> AllVideosName = new ArrayList<>();
     static ArrayList<String> AllVideosPath = new ArrayList<>();
-    static ArrayList<String> AllVideosRes = new ArrayList<>();
 
     /*Setting up Icons*/
-    private IconDrawable eq, ratio, screenshot;
+    private IconDrawable eq, ratio, screenshot, rotation;
 
     /*Adding Equalizer*/
     private Equalizer mEqualizer;
@@ -85,7 +86,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private long playbackPosition;
     private int currentWindow;
     private boolean playWhenReady = true;
-    private FrameLayout rotate;
+    private Button rotate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,8 +101,13 @@ public class VideoPlayerActivity extends AppCompatActivity {
         playerView = (SimpleExoPlayerView) findViewById(R.id.video_view);
         playerView.setResizeMode(RESIZE_MODE_ZOOM);
 
+        screenshot = new IconDrawable(this, EntypoIcons.entypo_copy).colorRes(R.color.colorAccent).sizeDp(25);
+        eq = new IconDrawable(this, EntypoIcons.entypo_sound_mix).colorRes(R.color.colorAccent).sizeDp(25);
+        ratio = new IconDrawable(this, EntypoIcons.entypo_crop).colorRes(R.color.colorAccent).sizeDp(25);
+        rotation = new IconDrawable(this, EntypoIcons.entypo_documents).colorRes(R.color.colorWhite).sizeDp(20);
 
-        rotate = (FrameLayout) findViewById(R.id.exo_fullscreen_button);
+        rotate = (Button) findViewById(R.id.exo_fullscreen_button);
+        rotate.setBackground(rotation);
         rotate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -114,14 +120,71 @@ public class VideoPlayerActivity extends AppCompatActivity {
             }
         });
 
-        /*Equalizer Initialization*/
-
         bundle = getIntent().getExtras();
         AllVideosName = bundle.getStringArrayList("videoNameArray");
         AllVideosPath = bundle.getStringArrayList("videoPathArray");
+
+
+        screenshotSetup();
+        ratioSetup();
+
+    }
+
+    static int clicks;
+
+    private void ratioSetup() {
+        Button ratioButton = findViewById(R.id.exo_ratio);
+        ratioButton.setBackground(ratio);
+        clicks = 0;
+        ratioButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch (clicks) {
+                    case 1:
+                        playerView.setResizeMode(RESIZE_MODE_FILL);
+                        Snackbar.make(v, "FILL", Snackbar.LENGTH_LONG).show();
+                        break;
+                    case 2:
+                        playerView.setResizeMode(RESIZE_MODE_FIT);
+                        break;
+                    case 3:
+                        playerView.setResizeMode(RESIZE_MODE_FIXED_WIDTH);
+                        break;
+                    case 4:
+                        playerView.setResizeMode(RESIZE_MODE_FIXED_HEIGHT);
+                        break;
+                    case 5:
+                        playerView.setResizeMode(RESIZE_MODE_ZOOM);
+                        clicks = 0;
+                        break;
+                }
+                clicks++;
+            }
+        });
+    }
+
+    private void screenshotSetup() {
+        Button screenshotButton = findViewById(R.id.exo_screenshot);
+        screenshotButton.setBackground(screenshot);
+        screenshotButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
     }
 
     private void setupEqualizer() {
+        Button equalizerButton = findViewById(R.id.exo_equalizer);
+        equalizerButton.setBackground(eq);
+        equalizerButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onPause();
+                Intent eqPage = new Intent(getApplicationContext(), EquilizerActivity.class);
+                getApplicationContext().startActivity(eqPage);
+            }
+        });
         player.setAudioDebugListener(new AudioRendererEventListener() {
 
             @Override

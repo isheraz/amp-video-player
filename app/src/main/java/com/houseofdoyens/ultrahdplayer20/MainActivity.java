@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity
         Iconify.with(new FontAwesomeModule())
                 .with(new EntypoModule());
         MobileAds.initialize(this, getResources().getString(R.string.app_id));
+//        MobileAds.initialize(this, getResources().getString(R.string.app_id_owner));
         mLayout = getCurrentFocus();
 
         /*Setting up Layout*/

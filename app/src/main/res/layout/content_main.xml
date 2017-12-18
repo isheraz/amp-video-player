@@ -16,7 +16,7 @@
         android:layout_marginTop="0dp"
         android:columnWidth="100dp"
         android:horizontalSpacing="10dp"
-        android:numColumns="4"
+        android:numColumns="2"
         android:stretchMode="columnWidth"
         android:verticalSpacing="10dp" />
 

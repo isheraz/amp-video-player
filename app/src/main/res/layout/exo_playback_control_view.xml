@@ -1,15 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:layout_gravity="bottom"
-    android:background="#CC000000"
+    android:background="#00000000"
     android:layoutDirection="ltr"
     android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal"
+        android:paddingTop="4dp">
+
+        <Button
+            android:id="@+id/exo_screenshot"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/exo_equalizer"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top"
+            android:layout_marginLeft="70dp"
+            android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/exo_ratio"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginLeft="70dp"
+            android:layout_marginTop="10dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/video_progress_container"
+        android:background="#CC000000"
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingTop="4dp">
@@ -43,9 +76,11 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/video_progress_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_alignParentBottom="true"
+        android:background="#CC000000"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -64,6 +99,8 @@
             android:id="@id/exo_progress"
             android:layout_width="0dp"
             android:layout_height="26dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="20dp"
             android:layout_weight="1" />
 
         <TextView
@@ -77,24 +114,14 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
-        <FrameLayout
+        <Button
             android:id="@+id/exo_fullscreen_button"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_gravity="right">
-
-            <ImageView
-                android:id="@+id/exo_fullscreen_icon"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center"
-                android:adjustViewBounds="true"
-                android:cropToPadding="false"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_fullscreen_expand" />
-
-        </FrameLayout>
+            android:layout_gravity="center"
+            android:layout_marginBottom="2dp"
+            android:layout_marginEnd="20dp" />
 
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>

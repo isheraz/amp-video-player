@@ -41,11 +41,14 @@ public class AdManager {
      */
     public static void createAd(Context context) {
         interstitialAd = new InterstitialAd(context);
-        if( adCounter % 2 != 0){
+        /*if( adCounter % 2 != 0){
             adID = "ca-app-pub-3882915167442181/3423031112";
+            adID = "ca-app-pub-5104299357927424/6726692784";
         }else{
             adID = "ca-app-pub-3882915167442181/1550739378";
-        }
+//            adID = "ca-app-pub-5104299357927424/7538371067";
+        }*/
+        adID = "ca-app-pub-5104299357927424/6726692784";
         interstitialAd.setAdUnitId(adID);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(testDevice)
@@ -53,6 +56,7 @@ public class AdManager {
         interstitialAd.loadAd(adRequest);
         adCounter++;
     }
+
     /***
      * get an interstitial Ad
      * @return interstitialAd
