@@ -177,23 +177,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu;
-        // this adds items to the action bar if it is present.
-        /*Icon initialization*/
-        ratio = new IconDrawable(this, FontAwesomeIcons.fa_crop).colorRes(R.color.colorWhite).actionBarSize();
-        eq = new IconDrawable(this, EntypoIcons.entypo_sound_mix).colorRes(R.color.colorWhite).actionBarSize();
-        screenshot = new IconDrawable(this, FontAwesomeIcons.fa_mobile_phone).colorRes(R.color.colorWhite).actionBarSize();
-
-        /*Inflating Menu Items*/
-        getMenuInflater().inflate(R.menu.video_player_menu, menu);
-        menu.findItem(R.id.action_ratio).setIcon(ratio);
-        menu.findItem(R.id.action_equalizer).setIcon(eq);
-        menu.findItem(R.id.action_screenshot).setIcon(screenshot);
-        return true;
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
@@ -229,6 +212,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         super.onStop();
         if (Util.SDK_INT > 23) {
             releasePlayer();
+            properties.edit_preferences.putBoolean("LastPlayed", true).commit();
         }
     }
 

@@ -1,1 +1,1 @@
-include ':app', ':zoomable'
+include ':app'

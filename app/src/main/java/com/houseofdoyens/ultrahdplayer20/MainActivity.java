@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.anthonycr.grant.PermissionsManager;
 import com.anthonycr.grant.PermissionsResultAction;
+import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
@@ -81,6 +82,10 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        properties = AppPreferences.getInstance();
+        properties.preferences = getSharedPreferences(properties.app, Context.MODE_PRIVATE);
+        properties.edit_preferences = properties.preferences.edit();
+
         /*Play Icon for Toolbar*/
         play = new IconDrawable(this, FontAwesomeIcons.fa_play).colorRes(R.color.colorWhite).actionBarSize();
         toolbar.setLogo(play);
@@ -91,22 +96,25 @@ public class MainActivity extends AppCompatActivity
 
         /*Recent Play Floating Button*/
         fab = (FloatingActionButton) findViewById(R.id.recentPlay);
-        fab.setVisibility(View.INVISIBLE);
+        boolean showFab = false;
+        showFab = properties.preferences.getBoolean("LastPlayed", false);
+        if (!showFab) {
+            fab.setVisibility(View.INVISIBLE);
+        }
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Click Working for recent play
+                Snackbar snackbar = Snackbar
+                        .make(view, "Last Played Video", Snackbar.LENGTH_LONG);
+                snackbar.show();
             }
         });
 
 
-        properties = AppPreferences.getInstance();
-        properties.preferences = getSharedPreferences(properties.app, Context.MODE_PRIVATE);
-        properties.edit_preferences = properties.preferences.edit();
-
         /* App Skin setup */
         String statusBarColor = properties.preferences.getString("statusBar_color", "#303F9F");
         String realThemeColor = properties.preferences.getString("actionBar_color", "#3F51B5");
+
         changeTheme(statusBarColor, realThemeColor);
 
         /* Ads Bannner */
